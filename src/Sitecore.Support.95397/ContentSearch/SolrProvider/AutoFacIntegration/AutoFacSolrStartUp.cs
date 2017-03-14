@@ -1,21 +1,21 @@
-﻿using Autofac;
-using Autofac.Builder;
-using AutofacContrib.CommonServiceLocator;
-using AutofacContrib.SolrNet;
-using AutofacContrib.SolrNet.Config;
-using Microsoft.Practices.ServiceLocation;
-using Sitecore.ContentSearch;
-using Sitecore.ContentSearch.SolrProvider;
-using Sitecore.ContentSearch.SolrProvider.DocumentSerializers;
-using SolrNet;
-using SolrNet.Impl;
-using SolrNet.Schema;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
+﻿namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
 {
+  using Autofac;
+  using Autofac.Builder;
+  using AutofacContrib.CommonServiceLocator;
+  using AutofacContrib.SolrNet;
+  using AutofacContrib.SolrNet.Config;
+  using Microsoft.Practices.ServiceLocation;
+  using Sitecore.ContentSearch;
+  using Sitecore.ContentSearch.SolrProvider;
+  using Sitecore.ContentSearch.SolrProvider.DocumentSerializers;
+  using SolrNet;
+  using SolrNet.Impl;
+  using SolrNet.Schema;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+
   public class AutoFacSolrStartUp : ISolrStartUp, IProviderStartUp
   {
     private readonly ContainerBuilder builder;
@@ -25,7 +25,10 @@ namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
     public AutoFacSolrStartUp(ContainerBuilder builder)
     {
       if (!SolrContentSearchManager.IsEnabled)
+      {
         return;
+      }
+
       this.builder = builder;
       this.Cores = new SolrServers();
     }
@@ -34,7 +37,10 @@ namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
     {
       SolrConnection solrConnection = new SolrConnection(SolrContentSearchManager.ServiceAddress);
       if (SolrContentSearchManager.EnableHttpCache)
+      {
         solrConnection.Cache = this.container.Resolve<ISolrCache>() ?? new NullCache();
+      }
+
       return new SolrCoreAdmin(solrConnection, this.container.Resolve<ISolrHeaderResponseParser>(), this.container.Resolve<ISolrStatusResponseParser>());
     }
 
@@ -44,10 +50,12 @@ namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
       {
         throw new InvalidOperationException("Solr configuration is not enabled. Please check your settings and include files.");
       }
+
       foreach (string str in SolrContentSearchManager.Cores)
       {
         this.AddCore(str, typeof(Dictionary<string, object>), SolrContentSearchManager.ServiceAddress + "/" + str);
       }
+
       this.builder.RegisterModule(new SolrNetModule(this.Cores));
       this.builder.RegisterType<SolrFieldBoostingDictionarySerializer>().As<ISolrDocumentSerializer<Dictionary<string, object>>>();
       this.builder.RegisterType<SolrSchemaParser>().As<ISolrSchemaParser>();
@@ -62,6 +70,7 @@ namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
             .OnActivated(args => ((SolrConnection)args.Instance).Cache = args.Context.Resolve<ISolrCache>());
         }
       }
+
       this.container = this.builder.Build(ContainerBuildOptions.None);
       ServiceLocator.SetLocatorProvider(() => new AutofacServiceLocator(this.container));
       SolrContentSearchManager.SolrAdmin = this.BuildCoreAdmin();
@@ -83,9 +92,14 @@ namespace Sitecore.Support.ContentSearch.SolrProvider.AutoFacIntegration
     public bool IsSetupValid()
     {
       if (!SolrContentSearchManager.IsEnabled)
+      {
         return false;
+      }
+
       ISolrCoreAdmin admin = this.BuildCoreAdmin();
-      return SolrContentSearchManager.Cores.Select(defaultIndex => admin.Status(defaultIndex).First()).All(status => status.Name != null);
+      return SolrContentSearchManager.Cores
+        .Select(defaultIndex => admin.Status(defaultIndex).First())
+        .All(status => status.Name != null);
     }
   }
 }
