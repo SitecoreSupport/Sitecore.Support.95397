@@ -83,8 +83,8 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoFacApplication.cs" />
-    <Compile Include="AutoFacSolrStartUp.cs" />
+    <Compile Include="ContentSearch\SolrProvider\AutoFacIntegration\AutoFacApplication.cs" />
+    <Compile Include="ContentSearch\SolrProvider\AutoFacIntegration\AutoFacSolrStartUp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
